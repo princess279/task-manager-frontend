@@ -5,27 +5,29 @@ import { useNavigate, Link } from 'react-router-dom';
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false); // optional loading state
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
   const navigate = useNavigate();
 
   // Get backend URL from environment variable
-  const API_URL = 'https://tasks-manager-api-vjni.onrender.com/api/auth';
+  const API_URL = import.meta.env.VITE_API_URL; // Ensure this is set in Render and .env locally
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setErrorMsg('');
 
     try {
       const res = await axios.post(`${API_URL}/login`, { email, password });
 
-      // Save token in localStorage
+      // Store token in localStorage
       localStorage.setItem('token', res.data.token);
 
       // Redirect to dashboard
       navigate('/dashboard');
     } catch (err) {
-      console.error(err.response?.data || err.message);
-      alert(err.response?.data?.message || 'Login failed');
+      console.error("Login error:", err.response?.data || err.message);
+      setErrorMsg(err.response?.data?.message || 'Login failed');
     } finally {
       setLoading(false);
     }
@@ -51,10 +53,21 @@ function Login() {
           required
           style={{ width: '100%', marginBottom: '10px', padding: '8px' }}
         />
-        <button type="submit" style={{ width: '100%', padding: '10px' }} disabled={loading}>
+        <button
+          type="submit"
+          style={{ width: '100%', padding: '10px' }}
+          disabled={loading}
+        >
           {loading ? 'Logging in...' : 'Login'}
         </button>
       </form>
+
+      {errorMsg && (
+        <p style={{ color: 'red', marginTop: '10px' }}>
+          {errorMsg}
+        </p>
+      )}
+
       <p style={{ marginTop: '10px' }}>
         Don't have an account? <Link to="/signup">Sign Up</Link>
       </p>
