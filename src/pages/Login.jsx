@@ -5,28 +5,32 @@ import { useNavigate, Link } from 'react-router-dom';
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false); // optional loading state
   const navigate = useNavigate();
 
-  // Render backend URL
-  const API_URL = 'https://tasks-manager-api-vjni.onrender.com/api/auth';
+  // Get backend URL from environment variable
+  const API_URL = import.meta.env.VITE_API_URL;
 
   const handleLogin = async (e) => {
-    e.preventDefault(); // prevent page reload
+    e.preventDefault();
+    setLoading(true);
+
     try {
       const res = await axios.post(`${API_URL}/login`, { email, password });
 
-      // Store token in localStorage
+      // Save token in localStorage
       localStorage.setItem('token', res.data.token);
 
       // Redirect to dashboard
       navigate('/dashboard');
     } catch (err) {
-      console.error(err.response?.data || err.message); // log backend error
+      console.error(err.response?.data || err.message);
       alert(err.response?.data?.message || 'Login failed');
+    } finally {
+      setLoading(false);
     }
   };
 
-  
   return (
     <div style={{ maxWidth: '400px', margin: '50px auto' }}>
       <h1>Login</h1>
@@ -47,8 +51,8 @@ function Login() {
           required
           style={{ width: '100%', marginBottom: '10px', padding: '8px' }}
         />
-        <button type="submit" style={{ width: '100%', padding: '10px' }}>
-          Login
+        <button type="submit" style={{ width: '100%', padding: '10px' }} disabled={loading}>
+          {loading ? 'Logging in...' : 'Login'}
         </button>
       </form>
       <p style={{ marginTop: '10px' }}>
