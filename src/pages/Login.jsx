@@ -9,7 +9,7 @@ function Login() {
   const navigate = useNavigate();
 
   // Get backend URL from environment variable
-  const API_URL = import.meta.env.VITE_API_URL;
+  const API_URL = 'https://tasks-manager-api-vjni.onrender.com/api/auth';
 
   const handleLogin = async (e) => {
     e.preventDefault();
