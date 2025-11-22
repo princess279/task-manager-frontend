@@ -1,48 +1,49 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { useNavigate, Link } from 'react-router-dom';
 
-function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const navigate = useNavigate();
-
+function Dashboard() {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState('');
   const API_URL = import.meta.env.VITE_API_URL;
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    try {
-      const res = await axios.post(`${API_URL}/login`, { email, password });
-      localStorage.setItem('token', res.data.token);
-      navigate('/dashboard');
-    } catch (err) {
-      alert(err.response?.data?.message || 'Login failed');
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      window.location.href = '/login';
+      return;
     }
+
+    axios.get(`${API_URL}/me`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(res => {
+        setUser(res.data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Dashboard fetch error:", err.response?.data || err.message);
+        setErrorMsg('Failed to load user data. Please login again.');
+        localStorage.removeItem('token');
+        setLoading(false);
+      });
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    window.location.href = '/login';
   };
+
+  if (loading) return <p>Loading...</p>;
+  if (errorMsg) return <p style={{ color: 'red' }}>{errorMsg}</p>;
 
   return (
     <div>
-      <h1>Login</h1>
-      <form onSubmit={handleLogin}>
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="Email"
-          required
-        />
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Password"
-          required
-        />
-        <button type="submit">Login</button>
-      </form>
-      <p>Don't have an account? <Link to="/signup">Sign Up</Link></p>
+      <h1>Welcome, {user.name}</h1>
+      <p>Email: {user.email}</p>
+      <button onClick={handleLogout}>Logout</button>
     </div>
   );
 }
 
-export default Login;
+export default Dashboard;
