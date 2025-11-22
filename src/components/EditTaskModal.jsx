@@ -1,79 +1,82 @@
+// src/components/EditTaskModal.jsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 function EditTaskModal({ task, onClose, onUpdate }) {
-  const [title, setTitle] = useState(task.title);
-  const [description, setDescription] = useState(task.description || '');
-  const [dueDate, setDueDate] = useState(task.dueDate ? task.dueDate.split('T')[0] : '');
-  const [loading, setLoading] = useState(false);
+  const [title, setTitle] = useState(task?.title || '');
+  const [description, setDescription] = useState(task?.description || '');
+  const [dueDate, setDueDate] = useState(task?.dueDate ? task.dueDate.split('T')[0] : '');
+  const [priority, setPriority] = useState(task?.priority || 'Medium');
 
   const API_URL = import.meta.env.VITE_API_URL;
   const token = localStorage.getItem('token');
 
-  // Close modal on ESC key press
   useEffect(() => {
-    const handleEsc = (e) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', handleEsc);
-    return () => window.removeEventListener('keydown', handleEsc);
-  }, [onClose]);
+    setTitle(task?.title || '');
+    setDescription(task?.description || '');
+    setDueDate(task?.dueDate ? task.dueDate.split('T')[0] : '');
+    setPriority(task?.priority || 'Medium');
+  }, [task]);
 
-  const handleSave = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    if (!title) return;
+
     try {
-      const updatedTask = { title, description, dueDate };
-      const res = await axios.put(`${API_URL}/tasks/${task._id}`, updatedTask, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await axios.put(
+        `${API_URL}/tasks/${task._id}`,
+        { title, description, dueDate, priority },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       onUpdate(res.data);
       onClose();
     } catch (err) {
-      console.error('Error updating task:', err.response?.data || err.message);
-    } finally { setLoading(false); }
+      console.error('Error updating task:', err);
+    }
   };
 
   return (
-    <div style={overlay}>
-      <div style={modal}>
-        <h3 style={{ marginBottom: '15px' }}>Edit Task</h3>
-        <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          <input type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="Task Title" required style={inputStyle} />
-          <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Description" style={textareaStyle} />
-          <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} style={inputStyle} />
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <button type="submit" style={saveBtnStyle} disabled={loading}>{loading ? 'Saving...' : 'Save'}</button>
-            <button type="button" style={cancelBtnStyle} onClick={onClose}>Cancel</button>
-          </div>
+    <div style={modalOverlay}>
+      <div style={modalStyle}>
+        <h3>Edit Task</h3>
+        <form onSubmit={handleSubmit}>
+          <input type="text" value={title} placeholder="Task Title" onChange={(e) => setTitle(e.target.value)} required style={{ padding: '8px', width: '90%', marginBottom: '10px' }} />
+          <textarea value={description} placeholder="Description (optional)" onChange={(e) => setDescription(e.target.value)} style={{ padding: '8px', width: '90%', marginBottom: '10px' }} />
+          <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} style={{ padding: '8px', marginBottom: '10px' }} />
+          <select value={priority} onChange={(e) => setPriority(e.target.value)} style={{ padding: '8px', marginBottom: '10px' }}>
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+          </select>
+          <br />
+          <button type="submit" style={{ padding: '8px 16px', marginRight: '10px' }}>Save</button>
+          <button type="button" onClick={onClose} style={{ padding: '8px 16px' }}>Cancel</button>
         </form>
       </div>
     </div>
   );
 }
 
-const overlay = {
+const modalOverlay = {
   position: 'fixed',
-  top:0, left:0, right:0, bottom:0,
-  backgroundColor:'rgba(0,0,0,0.6)',
-  display:'flex',
-  justifyContent:'center',
-  alignItems:'center',
-  zIndex:1000,
-  animation: 'fadeIn 0.2s',
+  top: 0,
+  left: 0,
+  width: '100%',
+  height: '100%',
+  backgroundColor: 'rgba(0,0,0,0.5)',
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  zIndex: 1000,
 };
 
-const modal = {
-  backgroundColor:'#1f1f1f',
-  color:'#fff',
-  padding:'25px',
-  borderRadius:'10px',
-  width:'400px',
-  maxWidth:'90%',
-  boxShadow:'0 8px 16px rgba(0,0,0,0.3)',
-  transform:'translateY(0)',
-  animation: 'slideIn 0.2s ease-out',
+const modalStyle = {
+  backgroundColor: '#fff',
+  padding: '20px',
+  borderRadius: '8px',
+  width: '400px',
+  maxWidth: '90%',
+  textAlign: 'center',
 };
-
-const inputStyle = { padding:'10px', borderRadius:'5px', border:'1px solid #555', backgroundColor:'#2a2a2a', color:'#fff' };
-const textareaStyle = { padding:'10px', borderRadius:'5px', border:'1px solid #555', minHeight:'60px', backgroundColor:'#2a2a2a', color:'#fff' };
-const saveBtnStyle = { padding:'8px 12px', borderRadius:'5px', cursor:'pointer', border:'none', backgroundColor:'#28a745', color:'#fff' };
-const cancelBtnStyle = { padding:'8px 12px', borderRadius:'5px', cursor:'pointer', border:'none', backgroundColor:'#dc3545', color:'#fff' };
 
 export default EditTaskModal;

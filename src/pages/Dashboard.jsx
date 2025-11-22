@@ -2,24 +2,26 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import Navbar from '../components/Navbar';
 import TaskForm from '../components/TaskForm';
 import TaskList from '../components/TaskList';
+import EditTaskModal from '../components/EditTaskModal';
 
 function Dashboard() {
   const [user, setUser] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+  const [editingTask, setEditingTask] = useState(null);
+  const [filter, setFilter] = useState('All'); // All, Completed, Pending, High, Medium, Low
 
+  const navigate = useNavigate();
   const API_URL = import.meta.env.VITE_API_URL;
   const token = localStorage.getItem('token');
 
+  // Fetch user and tasks
   useEffect(() => {
-    const fetchUserAndTasks = async () => {
-      if (!token) {
-        navigate('/login');
-        return;
-      }
+    const fetchData = async () => {
+      if (!token) return navigate('/login');
 
       try {
         const userRes = await axios.get(`${API_URL}/me`, {
@@ -32,7 +34,7 @@ function Dashboard() {
         });
         setTasks(tasksRes.data);
       } catch (err) {
-        console.error('Error loading dashboard:', err.response?.data || err.message);
+        console.error(err);
         localStorage.removeItem('token');
         navigate('/login');
       } finally {
@@ -40,51 +42,85 @@ function Dashboard() {
       }
     };
 
-    fetchUserAndTasks();
+    fetchData();
   }, [navigate, token, API_URL]);
 
+  // Logout
   const handleLogout = () => {
     localStorage.removeItem('token');
     navigate('/login');
   };
 
-  // Add new task
-  const handleAddTask = (newTask) => {
-    setTasks([...tasks, newTask]);
-  };
+  // Task actions
+  const handleAddTask = (newTask) => setTasks([...tasks, newTask]);
+  const handleUpdateTask = (updatedTask) =>
+    setTasks(tasks.map((t) => (t._id === updatedTask._id ? updatedTask : t)));
+  const handleDeleteTask = (taskId) =>
+    setTasks(tasks.filter((t) => t._id !== taskId));
 
-  // Update existing task
-  const handleUpdateTask = (updatedTask) => {
-    setTasks(tasks.map(t => t._id === updatedTask._id ? updatedTask : t));
-  };
-
-  // Delete task
-  const handleDeleteTask = (taskId) => {
-    setTasks(tasks.filter(t => t._id !== taskId));
-  };
+  // Filter tasks
+  const filteredTasks = tasks.filter((task) => {
+    if (filter === 'All') return true;
+    if (filter === 'Completed') return task.completed;
+    if (filter === 'Pending') return !task.completed;
+    return task.priority === filter;
+  });
 
   if (loading) return <p>Loading dashboard...</p>;
-  if (!user) return <p>No user data available.</p>;
 
   return (
-    <div style={{ maxWidth: '600px', margin: '50px auto', textAlign: 'center' }}>
-      <h1>Welcome, {user.name}!</h1>
-      <p>Email: {user.email}</p>
-      <button
-        onClick={handleLogout}
-        style={{ marginTop: '20px', padding: '10px 20px', cursor: 'pointer' }}
-      >
-        Logout
-      </button>
+    <>
+      <Navbar userName={user?.name} />
 
-      <TaskForm onTaskAdded={handleAddTask} />
-      <TaskList
-        tasks={tasks}
-        setTasks={setTasks}
-        onUpdate={handleUpdateTask}
-        onDelete={handleDeleteTask}
-      />
-    </div>
+      <div style={{ maxWidth: '600px', margin: '50px auto', textAlign: 'center' }}>
+        <h1>Welcome, {user?.name || 'User'}!</h1>
+        <p>Email: {user?.email || ''}</p>
+
+        <button
+          onClick={handleLogout}
+          style={{ marginTop: '10px', padding: '8px 16px', cursor: 'pointer' }}
+        >
+          Logout
+        </button>
+
+        {/* Add Task Form */}
+        <TaskForm onTaskAdded={handleAddTask} />
+
+        {/* Filters */}
+        <div style={{ margin: '10px 0' }}>
+          <label style={{ marginRight: '10px' }}>Filter:</label>
+          <select
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            style={{ padding: '5px' }}
+          >
+            <option value="All">All</option>
+            <option value="Completed">Completed</option>
+            <option value="Pending">Pending</option>
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+          </select>
+        </div>
+
+        {/* Task List with Edit button wired */}
+        <TaskList
+          tasks={filteredTasks}
+          onUpdate={handleUpdateTask}
+          onDelete={handleDeleteTask}
+          onEdit={setEditingTask} // Opens EditTaskModal
+        />
+
+        {/* Edit Task Modal */}
+        {editingTask && (
+          <EditTaskModal
+            task={editingTask}
+            onClose={() => setEditingTask(null)}
+            onUpdate={handleUpdateTask}
+          />
+        )}
+      </div>
+    </>
   );
 }
 

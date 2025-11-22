@@ -1,51 +1,41 @@
-import React, { useState } from 'react';
-import EditTaskModal from './EditTaskModal';
+// src/components/TaskCard.jsx
+import React from 'react';
 
-function TaskCard({ task, onComplete, onDelete, onUpdate }) {
-  const [showEdit, setShowEdit] = useState(false);
+function TaskCard({ task, onComplete, onDelete, onEdit }) {
+  if (!task) return null;
+
+  const priorityColor = task.priority === 'High' ? '#ff4d4d' :
+                        task.priority === 'Medium' ? '#ffcc00' : '#4dff4d';
 
   return (
-    <div style={cardStyle}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h3 style={{ textDecoration: task.completed ? 'line-through' : 'none', margin: 0 }}>{task.title}</h3>
-        <div>
-          {!task.completed && (
-            <button style={completeBtnStyle} onClick={() => onComplete(task._id)}>Complete</button>
-          )}
-          <button style={editBtnStyle} onClick={() => setShowEdit(true)}>Edit</button>
-          <button style={deleteBtnStyle} onClick={() => onDelete(task._id)}>Delete</button>
-        </div>
+    <div style={{ ...cardStyle, borderColor: priorityColor }}>
+      <h3 style={{ textDecoration: task.completed ? 'line-through' : 'none' }}>{task.title || 'Untitled Task'}</h3>
+      {task.description && <p>{task.description}</p>}
+      {task.dueDate && <p><strong>Due:</strong> {new Date(task.dueDate).toLocaleDateString()}</p>}
+      {task.priority && <p><strong>Priority:</strong> {task.priority}</p>}
+      <div>
+        {!task.completed && <button style={buttonStyle} onClick={() => onComplete(task._id)}>Complete</button>}
+        <button style={buttonStyle} onClick={() => onDelete(task._id)}>Delete</button>
+        <button style={buttonStyle} onClick={() => onEdit(task)}>Edit</button>
       </div>
-      {task.description && <p style={{ margin: '5px 0', color: '#ccc' }}>{task.description}</p>}
-      {task.dueDate && <p style={{ margin: '5px 0', color: '#ccc' }}><strong>Due:</strong> {new Date(task.dueDate).toLocaleDateString()}</p>}
-      
-      {showEdit && <EditTaskModal task={task} onClose={() => setShowEdit(false)} onUpdate={onUpdate} />}
     </div>
   );
 }
 
 const cardStyle = {
-  border: '1px solid #444',
-  borderRadius: '10px',
-  padding: '15px',
-  margin: '10px 0',
-  backgroundColor: '#2a2a2a',
+  border: '2px solid #ccc',
+  borderRadius: '8px',
+  padding: '1rem',
+  margin: '0.5rem 0',
+  backgroundColor: '#1a1a1a',
   color: '#fff',
-  boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
-  transition: 'transform 0.1s ease-in-out',
 };
 
-const completeBtnStyle = { ...buttonBaseStyle, backgroundColor: '#28a745' };
-const editBtnStyle = { ...buttonBaseStyle, backgroundColor: '#ffc107', color: '#000' };
-const deleteBtnStyle = { ...buttonBaseStyle, backgroundColor: '#dc3545' };
-
-const buttonBaseStyle = {
-  marginLeft: '5px',
-  padding: '6px 12px',
+const buttonStyle = {
+  marginRight: '0.5rem',
+  padding: '0.4rem 0.8rem',
   borderRadius: '5px',
   cursor: 'pointer',
-  border: 'none',
-  fontSize: '0.85rem',
 };
 
 export default TaskCard;

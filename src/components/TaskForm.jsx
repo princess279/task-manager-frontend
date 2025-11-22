@@ -6,6 +6,8 @@ function TaskForm({ onTaskAdded }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [dueDate, setDueDate] = useState('');
+  const [priority, setPriority] = useState('Medium');
+
   const API_URL = import.meta.env.VITE_API_URL;
   const token = localStorage.getItem('token');
 
@@ -14,30 +16,33 @@ function TaskForm({ onTaskAdded }) {
     if (!title) return;
 
     try {
-      const res = await axios.post(
-        `${API_URL}/tasks`,
-        { title, description, dueDate },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const res = await axios.post(`${API_URL}/tasks`, { title, description, dueDate, priority }, { headers: { Authorization: `Bearer ${token}` } });
       onTaskAdded(res.data);
-      setTitle(''); setDescription(''); setDueDate('');
+      setTitle('');
+      setDescription('');
+      setDueDate('');
+      setPriority('Medium');
     } catch (err) {
-      console.error('Error adding task:', err.response?.data || err.message);
+      console.error('Error adding task:', err);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ margin: '20px 0', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-      <input type="text" placeholder="Task Title" value={title} onChange={e => setTitle(e.target.value)} required style={inputStyle} />
-      <textarea placeholder="Description" value={description} onChange={e => setDescription(e.target.value)} style={textareaStyle} />
-      <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} style={inputStyle} />
-      <button type="submit" style={buttonStyle}>Add Task</button>
+    <form onSubmit={handleSubmit} style={{ margin: '20px 0' }}>
+      <input type="text" placeholder="Task Title" value={title} onChange={(e) => setTitle(e.target.value)} required style={{ padding: '8px', width: '60%', marginRight: '10px' }} />
+      <br />
+      <textarea placeholder="Description (optional)" value={description} onChange={(e) => setDescription(e.target.value)} style={{ padding: '8px', width: '60%', marginTop: '10px' }} />
+      <br />
+      <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} style={{ padding: '8px', marginTop: '10px' }} />
+      <select value={priority} onChange={(e) => setPriority(e.target.value)} style={{ padding: '8px', marginLeft: '10px' }}>
+        <option value="High">High</option>
+        <option value="Medium">Medium</option>
+        <option value="Low">Low</option>
+      </select>
+      <br />
+      <button type="submit" style={{ marginTop: '10px', padding: '8px 16px' }}>Add Task</button>
     </form>
   );
 }
-
-const inputStyle = { padding: '8px', borderRadius: '5px', border: '1px solid #ccc' };
-const textareaStyle = { padding: '8px', borderRadius: '5px', border: '1px solid #ccc', minHeight: '60px' };
-const buttonStyle = { padding: '10px', borderRadius: '5px', cursor: 'pointer', backgroundColor: '#007bff', color: '#fff', border: 'none' };
 
 export default TaskForm;
