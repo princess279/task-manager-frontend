@@ -15,25 +15,34 @@ function Dashboard() {
   const [showArchived, setShowArchived] = useState(false);
 
   const navigate = useNavigate();
-  const API_URL = import.meta.env.VITE_TASK_API_URL;
+
+  // Explicit URLs from environment variables
+  const AUTH_API_URL = import.meta.env.VITE_API_URL; // e.g., https://tasks-manager-api-vjni.onrender.com/api/auth
+  const TASK_API_URL = import.meta.env.VITE_TASK_API_URL; // e.g., https://tasks-manager-api-vjni.onrender.com/api/tasks
+
   const token = localStorage.getItem('token');
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!token) return navigate('/login');
+      if (!token) {
+        navigate('/login');
+        return;
+      }
 
       try {
-        const userRes = await axios.get(`${API_URL.replace('/tasks','/auth')}/me`, {
+        // Fetch user info
+        const userRes = await axios.get(`${AUTH_API_URL}/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setUser(userRes.data.user);
 
-        const tasksRes = await axios.get(`${API_URL}`, {
+        // Fetch tasks
+        const tasksRes = await axios.get(`${TASK_API_URL}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setTasks(tasksRes.data);
       } catch (err) {
-        console.error(err);
+        console.error('Error fetching dashboard data:', err.response?.data || err.message);
         localStorage.removeItem('token');
         navigate('/login');
       } finally {
@@ -42,13 +51,9 @@ function Dashboard() {
     };
 
     fetchData();
-  }, [navigate, token, API_URL]);
+  }, [navigate, token, AUTH_API_URL, TASK_API_URL]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    navigate('/login');
-  };
-
+  // Task actions
   const handleAddTask = (newTask) => setTasks([...tasks, newTask]);
   const handleUpdateTask = (updatedTask) =>
     setTasks(tasks.map((t) => (t._id === updatedTask._id ? updatedTask : t)));
@@ -75,14 +80,13 @@ function Dashboard() {
         <h1>Welcome, {user?.name || 'User'}!</h1>
         <p>Email: {user?.email || ''}</p>
 
-        <button onClick={handleLogout} style={{ marginTop: '10px', padding: '8px 16px', cursor: 'pointer' }}>
+        <button onClick={() => { localStorage.removeItem('token'); navigate('/login'); }}
+                style={{ marginTop: '10px', padding: '8px 16px', cursor: 'pointer' }}>
           Logout
         </button>
 
-        {/* Add Task Form */}
         {!showArchived && <TaskForm onTaskAdded={handleAddTask} />}
 
-        {/* Filters */}
         <div style={{ margin: '10px 0' }}>
           <label style={{ marginRight: '10px' }}>Filter:</label>
           <select value={filter} onChange={(e) => setFilter(e.target.value)} style={{ padding: '5px' }}>
@@ -100,7 +104,6 @@ function Dashboard() {
           </label>
         </div>
 
-        {/* Task List */}
         <TaskList
           tasks={filteredTasks}
           onUpdate={handleUpdateTask}
@@ -108,7 +111,6 @@ function Dashboard() {
           onEdit={setEditingTask}
         />
 
-        {/* Edit Task Modal */}
         {editingTask && (
           <EditTaskModal
             task={editingTask}
