@@ -3,35 +3,41 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 function EditTaskModal({ task, onClose, onUpdate }) {
-  const [title, setTitle] = useState(task?.title || '');
-  const [description, setDescription] = useState(task?.description || '');
-  const [dueDate, setDueDate] = useState(task?.dueDate ? task.dueDate.split('T')[0] : '');
-  const [priority, setPriority] = useState(task?.priority || 'Medium');
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [dueDate, setDueDate] = useState('');
+  const [priority, setPriority] = useState('Medium');
+  const [reminderTime, setReminderTime] = useState(''); // NEW
 
-  const TASK_API_URL = import.meta.env.VITE_TASK_API_URL;
+  const API_URL = import.meta.env.VITE_TASK_API_URL;
   const token = localStorage.getItem('token');
 
   useEffect(() => {
-    setTitle(task?.title || '');
-    setDescription(task?.description || '');
-    setDueDate(task?.dueDate ? task.dueDate.split('T')[0] : '');
-    setPriority(task?.priority || 'Medium');
+    if (task) {
+      setTitle(task.title || '');
+      setDescription(task.description || '');
+      setDueDate(task.dueDate ? task.dueDate.split('T')[0] : '');
+      setPriority(task.priority || 'Medium');
+      setReminderTime(task.reminderTime || ''); // NEW
+    }
   }, [task]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!title) return;
+    if (!title.trim()) return alert('Task title cannot be empty');
 
     try {
       const res = await axios.put(
-        `${TASK_API_URL}/${task._id}`,
-        { title, description, dueDate, priority },
+        `${API_URL}/${task._id}`,
+        { title, description, dueDate, priority, reminderTime },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
       onUpdate(res.data);
       onClose();
     } catch (err) {
-      console.error('Error updating task:', err);
+      console.error('Failed to update task:', err.response?.data || err.message);
+      alert(err.response?.data?.message || 'Failed to update task');
     }
   };
 
@@ -39,32 +45,52 @@ function EditTaskModal({ task, onClose, onUpdate }) {
     <div style={modalOverlay}>
       <div style={modalStyle}>
         <h3>Edit Task</h3>
-
         <form onSubmit={handleSubmit}>
-          <input type="text" value={title} required
+          <input
+            type="text"
+            placeholder="Task Title"
+            value={title}
             onChange={(e) => setTitle(e.target.value)}
-            style={{ padding: '8px', width: '90%', marginBottom: '10px' }} />
+            required
+            style={inputStyle}
+          />
 
-          <textarea value={description}
+          <textarea
+            placeholder="Description (optional)"
+            value={description}
             onChange={(e) => setDescription(e.target.value)}
-            style={{ padding: '8px', width: '90%', marginBottom: '10px' }} />
+            style={inputStyle}
+          />
 
-          <input type="date" value={dueDate}
+          <input
+            type="date"
+            value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
-            style={{ padding: '8px', marginBottom: '10px' }} />
+            style={inputStyle}
+          />
 
-          <select value={priority}
+          {/* NEW REMINDER TIME INPUT */}
+          <input
+            type="time"
+            value={reminderTime}
+            onChange={(e) => setReminderTime(e.target.value)}
+            style={inputStyle}
+          />
+
+          <select
+            value={priority}
             onChange={(e) => setPriority(e.target.value)}
-            style={{ padding: '8px', marginBottom: '10px' }}>
+            style={inputStyle}
+          >
             <option value="High">High</option>
             <option value="Medium">Medium</option>
             <option value="Low">Low</option>
           </select>
 
-          <br />
-
-          <button type="submit" style={{ padding: '8px 16px', marginRight: '10px' }}>Save</button>
-          <button type="button" onClick={onClose} style={{ padding: '8px 16px' }}>Cancel</button>
+          <div style={{ marginTop: '10px' }}>
+            <button type="submit" style={buttonStyle}>Save</button>
+            <button type="button" onClick={onClose} style={buttonStyle}>Cancel</button>
+          </div>
         </form>
       </div>
     </div>
@@ -76,7 +102,9 @@ const modalOverlay = {
   top: 0, left: 0,
   width: '100%', height: '100%',
   backgroundColor: 'rgba(0,0,0,0.5)',
-  display: 'flex', justifyContent: 'center', alignItems: 'center',
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
   zIndex: 1000,
 };
 
@@ -88,5 +116,8 @@ const modalStyle = {
   maxWidth: '90%',
   textAlign: 'center',
 };
+
+const inputStyle = { width: '90%', padding: '8px', margin: '8px 0' };
+const buttonStyle = { padding: '8px 16px', margin: '0 5px' };
 
 export default EditTaskModal;

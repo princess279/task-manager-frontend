@@ -1,41 +1,92 @@
 // src/components/TaskCard.jsx
 import React from 'react';
 
-function TaskCard({ task, onComplete, onDelete, onEdit }) {
-  if (!task) return null;
-
-  const priorityColor = task.priority === 'High' ? '#ff4d4d' :
-                        task.priority === 'Medium' ? '#ffcc00' : '#4dff4d';
+function TaskCard({ task, onEdit, onDelete, onToggleComplete }) {
+  const getPriorityColor = (priority) => {
+    switch (priority) {
+      case 'High': return '#f87171';   // red
+      case 'Medium': return '#facc15'; // yellow
+      case 'Low': return '#34d399';    // green
+      default: return '#ddd';
+    }
+  };
 
   return (
-    <div style={{ ...cardStyle, borderColor: priorityColor }}>
-      <h3 style={{ textDecoration: task.completed ? 'line-through' : 'none' }}>{task.title || 'Untitled Task'}</h3>
-      {task.description && <p>{task.description}</p>}
-      {task.dueDate && <p><strong>Due:</strong> {new Date(task.dueDate).toLocaleDateString()}</p>}
-      {task.priority && <p><strong>Priority:</strong> {task.priority}</p>}
-      <div>
-        {!task.completed && <button style={buttonStyle} onClick={() => onComplete(task._id)}>Complete</button>}
-        <button style={buttonStyle} onClick={() => onDelete(task._id)}>Delete</button>
-        <button style={buttonStyle} onClick={() => onEdit(task)}>Edit</button>
+    <div style={{ ...cardStyle, borderLeft: `5px solid ${getPriorityColor(task.priority)}` }}>
+      <div style={headerStyle}>
+        <h4 style={{ margin: 0 }}>{task.title || 'Untitled Task'}</h4>
+        {task.reminderTime && <span style={reminderStyle}>🕒 {task.reminderTime}</span>}
+      </div>
+
+      {task.description && <p style={descStyle}>{task.description}</p>}
+
+      <div style={metaStyle}>
+        <span>Due: {new Date(task.dueDate).toLocaleDateString()}</span>
+        <span>Status: <b>{task.completed ? 'Completed' : task.status}</b></span>
+        <span>Priority: <b>{task.priority}</b></span>
+      </div>
+
+      <div style={buttonGroup}>
+        <button onClick={() => onEdit(task)} style={buttonStyle}>Edit</button>
+        <button onClick={() => onDelete(task._id)} style={buttonStyle}>Delete</button>
+        <button onClick={() => onToggleComplete(task)} style={buttonStyle}>
+          {task.completed ? 'Mark Pending' : 'Mark Completed'}
+        </button>
       </div>
     </div>
   );
 }
 
+// Styles
 const cardStyle = {
-  border: '2px solid #ccc',
+  backgroundColor: '#fff',
+  padding: '15px',
   borderRadius: '8px',
-  padding: '1rem',
-  margin: '0.5rem 0',
-  backgroundColor: '#1a1a1a',
-  color: '#fff',
+  marginBottom: '15px',
+  boxShadow: '0 2px 6px rgba(0,0,0,0.05)',
+  borderLeft: '5px solid #ddd'
+};
+
+const headerStyle = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  marginBottom: '8px'
+};
+
+const reminderStyle = {
+  fontSize: '14px',
+  color: '#555'
+};
+
+const descStyle = {
+  fontSize: '14px',
+  color: '#666',
+  marginBottom: '8px'
+};
+
+const metaStyle = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  fontSize: '13px',
+  color: '#444',
+  marginBottom: '10px'
+};
+
+const buttonGroup = {
+  display: 'flex',
+  justifyContent: 'flex-end'
 };
 
 const buttonStyle = {
-  marginRight: '0.5rem',
-  padding: '0.4rem 0.8rem',
-  borderRadius: '5px',
+  marginLeft: '5px',
+  padding: '6px 12px',
   cursor: 'pointer',
+  border: 'none',
+  borderRadius: '4px',
+  backgroundColor: '#3b82f6',
+  color: '#fff',
+  fontSize: '13px'
 };
 
 export default TaskCard;

@@ -7,49 +7,33 @@ function TaskForm({ onTaskAdded }) {
   const [description, setDescription] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [priority, setPriority] = useState('Medium');
-  const [loading, setLoading] = useState(false);
+  const [reminderTime, setReminderTime] = useState(''); // optional HH:mm
 
-  const TASK_API_URL = import.meta.env.VITE_TASK_API_URL; // Must point to /api/tasks
+  const TASK_API_URL = import.meta.env.VITE_TASK_API_URL;
   const token = localStorage.getItem('token');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!token) {
-      alert('You are not logged in. Please log in first.');
-      return;
-    }
-
-    if (!title) {
-      alert('Task title is required.');
-      return;
-    }
-
-    setLoading(true);
+    if (!title) return;
 
     try {
       const res = await axios.post(
         `${TASK_API_URL}`,
-        { title, description, dueDate, priority },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { title, description, dueDate, priority, reminderTime: reminderTime || null },
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       onTaskAdded(res.data);
 
-      // Reset form
+      // Clear form
       setTitle('');
       setDescription('');
       setDueDate('');
       setPriority('Medium');
+      setReminderTime('');
     } catch (err) {
       console.error('Error adding task:', err.response?.data || err.message);
       alert(err.response?.data?.message || 'Failed to add task');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -76,6 +60,7 @@ function TaskForm({ onTaskAdded }) {
         value={dueDate}
         onChange={(e) => setDueDate(e.target.value)}
         style={{ padding: '8px', marginTop: '10px' }}
+        required
       />
       <select
         value={priority}
@@ -87,12 +72,16 @@ function TaskForm({ onTaskAdded }) {
         <option value="Low">Low</option>
       </select>
       <br />
-      <button
-        type="submit"
-        style={{ marginTop: '10px', padding: '8px 16px' }}
-        disabled={loading}
-      >
-        {loading ? 'Adding...' : 'Add Task'}
+      <input
+        type="time"
+        value={reminderTime}
+        onChange={(e) => setReminderTime(e.target.value)}
+        style={{ padding: '8px', marginTop: '10px' }}
+        placeholder="Reminder time (optional)"
+      />
+      <br />
+      <button type="submit" style={{ marginTop: '10px', padding: '8px 16px' }}>
+        Add Task
       </button>
     </form>
   );

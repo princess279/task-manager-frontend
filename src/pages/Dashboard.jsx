@@ -1,3 +1,4 @@
+// src/pages/Dashboard.jsx
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -11,38 +12,30 @@ function Dashboard() {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingTask, setEditingTask] = useState(null);
-  const [filter, setFilter] = useState('All'); 
+  const [filter, setFilter] = useState('All');
   const [showArchived, setShowArchived] = useState(false);
 
   const navigate = useNavigate();
-
-  // Explicit URLs from environment variables
-  const AUTH_API_URL = import.meta.env.VITE_API_URL; // e.g., https://tasks-manager-api-vjni.onrender.com/api/auth
-  const TASK_API_URL = import.meta.env.VITE_TASK_API_URL; // e.g., https://tasks-manager-api-vjni.onrender.com/api/tasks
-
+  const AUTH_API_URL = import.meta.env.VITE_API_URL;
+  const TASK_API_URL = import.meta.env.VITE_TASK_API_URL;
   const token = localStorage.getItem('token');
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!token) {
-        navigate('/login');
-        return;
-      }
+      if (!token) return navigate('/login');
 
       try {
-        // Fetch user info
         const userRes = await axios.get(`${AUTH_API_URL}/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setUser(userRes.data.user);
 
-        // Fetch tasks
         const tasksRes = await axios.get(`${TASK_API_URL}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setTasks(tasksRes.data);
       } catch (err) {
-        console.error('Error fetching dashboard data:', err.response?.data || err.message);
+        console.error(err.response?.data || err.message);
         localStorage.removeItem('token');
         navigate('/login');
       } finally {
@@ -53,12 +46,20 @@ function Dashboard() {
     fetchData();
   }, [navigate, token, AUTH_API_URL, TASK_API_URL]);
 
-  // Task actions
   const handleAddTask = (newTask) => setTasks([...tasks, newTask]);
   const handleUpdateTask = (updatedTask) =>
     setTasks(tasks.map((t) => (t._id === updatedTask._id ? updatedTask : t)));
-  const handleDeleteTask = (taskId) =>
-    setTasks(tasks.filter((t) => t._id !== taskId));
+  const handleDeleteTask = async (taskId) => {
+    try {
+      await axios.delete(`${TASK_API_URL}/${taskId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setTasks(tasks.filter((t) => t._id !== taskId));
+    } catch (err) {
+      console.error('Delete failed:', err.response?.data || err.message);
+      alert(err.response?.data?.message || 'Failed to delete task');
+    }
+  };
 
   // Filter tasks
   const filteredTasks = tasks
@@ -80,15 +81,17 @@ function Dashboard() {
         <h1>Welcome, {user?.name || 'User'}!</h1>
         <p>Email: {user?.email || ''}</p>
 
-        <button onClick={() => { localStorage.removeItem('token'); navigate('/login'); }}
-                style={{ marginTop: '10px', padding: '8px 16px', cursor: 'pointer' }}>
+        <button
+          onClick={() => { localStorage.removeItem('token'); navigate('/login'); }}
+          style={{ marginTop: '10px', padding: '8px 16px', cursor: 'pointer' }}
+        >
           Logout
         </button>
 
         {!showArchived && <TaskForm onTaskAdded={handleAddTask} />}
 
         <div style={{ margin: '10px 0' }}>
-          <label style={{ marginRight: '10px' }}>Filter:</label>
+          <label>Filter: </label>
           <select value={filter} onChange={(e) => setFilter(e.target.value)} style={{ padding: '5px' }}>
             <option value="All">All</option>
             <option value="Completed">Completed</option>
