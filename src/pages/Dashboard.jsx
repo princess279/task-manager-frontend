@@ -46,9 +46,21 @@ function Dashboard() {
     fetchData();
   }, [navigate, token, AUTH_API_URL, TASK_API_URL]);
 
+  // Add a new task
   const handleAddTask = (newTask) => setTasks([...tasks, newTask]);
-  const handleUpdateTask = (updatedTask) =>
-    setTasks(tasks.map((t) => (t._id === updatedTask._id ? updatedTask : t)));
+
+  // Update a task or reset tasks after deleting all
+  const handleUpdateTask = (updatedTaskOrArray) => {
+    if (Array.isArray(updatedTaskOrArray)) {
+      // Reset tasks (used for "Delete All Tasks")
+      setTasks([]);
+    } else {
+      // Single task update
+      setTasks(tasks.map((t) => (t._id === updatedTaskOrArray._id ? updatedTaskOrArray : t)));
+    }
+  };
+
+  // Delete a single task
   const handleDeleteTask = async (taskId) => {
     try {
       await axios.delete(`${TASK_API_URL}/${taskId}`, {
@@ -109,7 +121,7 @@ function Dashboard() {
 
         <TaskList
           tasks={filteredTasks}
-          onUpdate={handleUpdateTask}
+          onUpdate={handleUpdateTask}   // Can now handle "delete all"
           onDelete={handleDeleteTask}
           onEdit={setEditingTask}
         />
