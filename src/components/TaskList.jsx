@@ -1,50 +1,36 @@
-// src/components/TaskList.jsx
 import React from 'react';
+import TaskCard from './TaskCard';
+import axios from 'axios';
 
-function TaskList({ tasks, onUpdate, onDelete, onEdit }) {
-  if (!tasks.length) return <p>No tasks found.</p>;
+const TaskList = ({ tasks, onDelete, onEdit, onUpdate }) => {
+  const token = localStorage.getItem('token');
+  const TASK_API_URL = import.meta.env.VITE_TASK_API_URL;
+
+  const handleComplete = async (taskId) => {
+    try {
+      const res = await axios.patch(`${TASK_API_URL}/${taskId}/complete`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      onUpdate(res.data.task);
+    } catch (err) {
+      console.error('Error marking complete:', err.response?.data || err.message);
+      alert(err.response?.data?.message || 'Failed to mark task complete');
+    }
+  };
 
   return (
     <div>
       {tasks.map(task => (
-        <div key={task._id} style={taskCard}>
-          <div style={{ textAlign: 'left' }}>
-            <h4>{task.title}</h4>
-            <p>{task.description}</p>
-            <p>Due: {new Date(task.dueDate).toLocaleDateString()}</p>
-            {task.reminderTime && <p>🕒 Reminder: {task.reminderTime}</p>}
-            <p>Status: {task.status}</p>
-            <p>Priority: {task.priority}</p>
-          </div>
-
-          <div style={{ marginTop: '10px' }}>
-            <button onClick={() => onEdit(task)} style={buttonStyle}>Edit</button>
-            <button onClick={() => onDelete(task._id)} style={buttonStyle}>Delete</button>
-            <button
-              onClick={() => onUpdate({ ...task, completed: !task.completed })}
-              style={buttonStyle}
-            >
-              {task.completed ? 'Mark Pending' : 'Mark Completed'}
-            </button>
-          </div>
-        </div>
+        <TaskCard
+          key={task._id}
+          task={task}
+          onDelete={onDelete}
+          onEdit={onEdit}
+          onComplete={handleComplete}
+        />
       ))}
     </div>
   );
-}
-
-const taskCard = {
-  border: '1px solid #ddd',
-  padding: '15px',
-  borderRadius: '8px',
-  marginBottom: '10px',
-  backgroundColor: '#f9f9f9'
-};
-
-const buttonStyle = {
-  marginRight: '5px',
-  padding: '6px 12px',
-  cursor: 'pointer'
 };
 
 export default TaskList;

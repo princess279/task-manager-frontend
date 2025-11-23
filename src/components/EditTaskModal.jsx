@@ -1,4 +1,3 @@
-// src/components/EditTaskModal.jsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
@@ -33,7 +32,7 @@ function EditTaskModal({ task, onClose, onUpdate }) {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      onUpdate(res.data);
+      onUpdate(res.data.task);
       onClose();
     } catch (err) {
       console.error('Failed to update task:', err.response?.data || err.message);
@@ -54,39 +53,29 @@ function EditTaskModal({ task, onClose, onUpdate }) {
             required
             style={inputStyle}
           />
-
           <textarea
             placeholder="Description (optional)"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             style={inputStyle}
           />
-
           <input
             type="date"
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
             style={inputStyle}
           />
-
-          {/* NEW REMINDER TIME INPUT */}
+          <select value={priority} onChange={(e) => setPriority(e.target.value)} style={inputStyle}>
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+          </select>
           <input
             type="time"
             value={reminderTime}
             onChange={(e) => setReminderTime(e.target.value)}
             style={inputStyle}
           />
-
-          <select
-            value={priority}
-            onChange={(e) => setPriority(e.target.value)}
-            style={inputStyle}
-          >
-            <option value="High">High</option>
-            <option value="Medium">Medium</option>
-            <option value="Low">Low</option>
-          </select>
-
           <div style={{ marginTop: '10px' }}>
             <button type="submit" style={buttonStyle}>Save</button>
             <button type="button" onClick={onClose} style={buttonStyle}>Cancel</button>
