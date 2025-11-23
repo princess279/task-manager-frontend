@@ -7,13 +7,25 @@ function TaskForm({ onTaskAdded }) {
   const [description, setDescription] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [priority, setPriority] = useState('Medium');
+  const [loading, setLoading] = useState(false);
 
-  const TASK_API_URL = import.meta.env.VITE_TASK_API_URL; // should point to /api/tasks
+  const TASK_API_URL = import.meta.env.VITE_TASK_API_URL; // Must point to /api/tasks
   const token = localStorage.getItem('token');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!title) return;
+
+    if (!token) {
+      alert('You are not logged in. Please log in first.');
+      return;
+    }
+
+    if (!title) {
+      alert('Task title is required.');
+      return;
+    }
+
+    setLoading(true);
 
     try {
       const res = await axios.post(
@@ -28,7 +40,7 @@ function TaskForm({ onTaskAdded }) {
 
       onTaskAdded(res.data);
 
-      // Clear form
+      // Reset form
       setTitle('');
       setDescription('');
       setDueDate('');
@@ -36,6 +48,8 @@ function TaskForm({ onTaskAdded }) {
     } catch (err) {
       console.error('Error adding task:', err.response?.data || err.message);
       alert(err.response?.data?.message || 'Failed to add task');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -73,8 +87,12 @@ function TaskForm({ onTaskAdded }) {
         <option value="Low">Low</option>
       </select>
       <br />
-      <button type="submit" style={{ marginTop: '10px', padding: '8px 16px' }}>
-        Add Task
+      <button
+        type="submit"
+        style={{ marginTop: '10px', padding: '8px 16px' }}
+        disabled={loading}
+      >
+        {loading ? 'Adding...' : 'Add Task'}
       </button>
     </form>
   );
