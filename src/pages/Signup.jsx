@@ -6,8 +6,8 @@ function Signup() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const navigate = useNavigate();
 
+  const navigate = useNavigate();
   const API_URL = import.meta.env.VITE_API_URL;
 
   const handleSignup = async (e) => {
@@ -17,20 +17,44 @@ function Signup() {
       alert('Signup successful! Please login.');
       navigate('/');
     } catch (err) {
+      console.error(err);
       alert(err.response?.data?.message || 'Signup failed');
     }
   };
 
   return (
-    <div style={{ maxWidth: '400px', margin: '50px auto' }}>
+    <div style={{ maxWidth: '400px', margin: '50px auto', textAlign: 'center' }}>
       <h1>Sign Up</h1>
       <form onSubmit={handleSignup}>
-        <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Full Name" required style={{ width: '100%', padding: '8px', marginBottom: '10px' }} />
-        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" required style={{ width: '100%', padding: '8px', marginBottom: '10px' }} />
-        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" required style={{ width: '100%', padding: '8px', marginBottom: '10px' }} />
-        <button type="submit" style={{ width: '100%', padding: '10px' }}>Sign Up</button>
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Full Name"
+          required
+          style={{ width: '100%', padding: '10px', margin: '8px 0' }}
+        />
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Email"
+          required
+          style={{ width: '100%', padding: '10px', margin: '8px 0' }}
+        />
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Password"
+          required
+          style={{ width: '100%', padding: '10px', margin: '8px 0' }}
+        />
+        <button type="submit" style={{ width: '100%', padding: '10px', marginTop: '10px' }}>Sign Up</button>
       </form>
-      <p style={{ marginTop: '10px' }}>Already have an account? <Link to="/">Login</Link></p>
+      <p style={{ marginTop: '10px' }}>
+        Already have an account? <Link to="/">Login</Link>
+      </p>
     </div>
   );
 }
