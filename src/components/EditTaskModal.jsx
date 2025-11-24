@@ -6,7 +6,7 @@ function EditTaskModal({ task, onClose, onUpdate }) {
   const [description, setDescription] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [priority, setPriority] = useState('Medium');
-  const [reminderTime, setReminderTime] = useState(''); // NEW
+  const [reminderTime, setReminderTime] = useState(''); // Optional
 
   const API_URL = import.meta.env.VITE_TASK_API_URL;
   const token = localStorage.getItem('token');
@@ -17,7 +17,7 @@ function EditTaskModal({ task, onClose, onUpdate }) {
       setDescription(task.description || '');
       setDueDate(task.dueDate ? task.dueDate.split('T')[0] : '');
       setPriority(task.priority || 'Medium');
-      setReminderTime(task.reminderTime || ''); // NEW
+      setReminderTime(task.reminderTime || '');
     }
   }, [task]);
 
@@ -26,11 +26,12 @@ function EditTaskModal({ task, onClose, onUpdate }) {
     if (!title.trim()) return alert('Task title cannot be empty');
 
     try {
-      const res = await axios.put(
-        `${API_URL}/${task._id}`,
-        { title, description, dueDate, priority, reminderTime },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const payload = { title, description, dueDate, priority };
+      if (reminderTime) payload.reminderTime = reminderTime; // Only send if set
+
+      const res = await axios.put(`${API_URL}/${task._id}`, payload, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       onUpdate(res.data.task);
       onClose();
@@ -71,7 +72,7 @@ function EditTaskModal({ task, onClose, onUpdate }) {
             <option value="Low">Low</option>
           </select>
           <input
-            type="time"
+            type="datetime-local"
             value={reminderTime}
             onChange={(e) => setReminderTime(e.target.value)}
             style={inputStyle}

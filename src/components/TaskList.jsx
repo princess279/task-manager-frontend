@@ -7,6 +7,7 @@ const TaskList = ({ tasks, onDelete, onEdit, onUpdate }) => {
   const token = localStorage.getItem('token');
   const TASK_API_URL = import.meta.env.VITE_TASK_API_URL;
 
+  // Toggle task complete/pending
   const handleToggleComplete = async (task) => {
     try {
       const res = await axios.patch(
@@ -14,6 +15,7 @@ const TaskList = ({ tasks, onDelete, onEdit, onUpdate }) => {
         {}, // PATCH body is empty
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
       onUpdate(res.data.task);
     } catch (err) {
       console.error('Error toggling complete:', err.response?.data || err.message);
@@ -29,7 +31,7 @@ const TaskList = ({ tasks, onDelete, onEdit, onUpdate }) => {
           task={task}
           onDelete={onDelete}
           onEdit={onEdit}
-          onToggleComplete={handleToggleComplete} // matches TaskCard prop
+          onToggleComplete={handleToggleComplete} // must match TaskCard
         />
       ))}
     </div>

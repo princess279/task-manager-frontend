@@ -1,4 +1,3 @@
-// src/components/TaskCard.jsx
 import React from 'react';
 
 function TaskCard({ task, onEdit, onDelete, onToggleComplete }) {
@@ -11,15 +10,40 @@ function TaskCard({ task, onEdit, onDelete, onToggleComplete }) {
     }
   };
 
+  // Format reminder nicely and check for validity
+  const getFormattedReminder = (reminderTime) => {
+    if (!reminderTime) return null;
+    const date = new Date(reminderTime);
+    if (isNaN(date.getTime())) return null;
+
+    // Format: Nov 24, 2025, 3:00 PM
+    return date.toLocaleString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    });
+  };
+
+  const formattedReminder = getFormattedReminder(task.reminderTime);
+  const isReminderOverdue = formattedReminder && !task.completed && new Date(task.reminderTime) < new Date();
+
   return (
     <div style={{ ...cardStyle, borderLeft: `5px solid ${getPriorityColor(task.priority)}` }}>
       <div style={headerStyle}>
         <h4 style={{ margin: 0 }}>{task.title || 'Untitled Task'}</h4>
 
-        {/* Reminder (optional, readable format) */}
-        {task.reminderTime && (
-          <span style={reminderStyle}>
-            🕒 {new Date(task.reminderTime).toLocaleString()}
+        {/* Reminder (optional) */}
+        {formattedReminder && (
+          <span
+            style={{
+              ...reminderStyle,
+              color: isReminderOverdue ? 'red' : reminderStyle.color,
+              fontWeight: isReminderOverdue ? 'bold' : 'normal',
+            }}
+          >
+            🕒 {formattedReminder}
           </span>
         )}
       </div>
@@ -27,7 +51,7 @@ function TaskCard({ task, onEdit, onDelete, onToggleComplete }) {
       {task.description && <p style={descStyle}>{task.description}</p>}
 
       <div style={metaStyle}>
-        <span>Due: {new Date(task.dueDate).toLocaleDateString()}</span>
+        <span>Due: {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'N/A'}</span>
         <span>Status: <b>{task.completed ? 'Completed' : task.status}</b></span>
         <span>Priority: <b>{task.priority}</b></span>
       </div>
@@ -50,25 +74,25 @@ const cardStyle = {
   borderRadius: '8px',
   marginBottom: '15px',
   boxShadow: '0 2px 6px rgba(0,0,0,0.05)',
-  borderLeft: '5px solid #ddd'
+  borderLeft: '5px solid #ddd',
 };
 
 const headerStyle = {
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
-  marginBottom: '8px'
+  marginBottom: '8px',
 };
 
 const reminderStyle = {
   fontSize: '14px',
-  color: '#555'
+  color: '#555',
 };
 
 const descStyle = {
   fontSize: '14px',
   color: '#666',
-  marginBottom: '8px'
+  marginBottom: '8px',
 };
 
 const metaStyle = {
@@ -76,12 +100,12 @@ const metaStyle = {
   justifyContent: 'space-between',
   fontSize: '13px',
   color: '#444',
-  marginBottom: '10px'
+  marginBottom: '10px',
 };
 
 const buttonGroup = {
   display: 'flex',
-  justifyContent: 'flex-end'
+  justifyContent: 'flex-end',
 };
 
 const buttonStyle = {
@@ -92,7 +116,7 @@ const buttonStyle = {
   borderRadius: '4px',
   backgroundColor: '#3b82f6',
   color: '#fff',
-  fontSize: '13px'
+  fontSize: '13px',
 };
 
 export default TaskCard;
