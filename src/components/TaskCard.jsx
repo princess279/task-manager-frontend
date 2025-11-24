@@ -15,7 +15,13 @@ function TaskCard({ task, onEdit, onDelete, onToggleComplete }) {
     <div style={{ ...cardStyle, borderLeft: `5px solid ${getPriorityColor(task.priority)}` }}>
       <div style={headerStyle}>
         <h4 style={{ margin: 0 }}>{task.title || 'Untitled Task'}</h4>
-        {task.reminderTime && <span style={reminderStyle}>🕒 {task.reminderTime}</span>}
+
+        {/* Reminder (optional, readable format) */}
+        {task.reminderTime && (
+          <span style={reminderStyle}>
+            🕒 {new Date(task.reminderTime).toLocaleString()}
+          </span>
+        )}
       </div>
 
       {task.description && <p style={descStyle}>{task.description}</p>}
