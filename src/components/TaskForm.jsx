@@ -64,7 +64,7 @@ function TaskForm({ onTaskAdded }) {
         <option value="Low">Low</option>
       </select>
       <input
-        type="datetime-local"
+        type="time"
         value={reminderTime}
         onChange={(e) => setReminderTime(e.target.value)}
         style={inputStyle}
