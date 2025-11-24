@@ -10,23 +10,23 @@ function TaskCard({ task, onEdit, onDelete, onToggleComplete }) {
     }
   };
 
+  // Only display optional time (HH:mm)
   const getFormattedReminderTime = (reminderTime) => {
     if (!reminderTime) return null;
-    // Expecting HH:mm string
-    return reminderTime;
+    return reminderTime; // expect HH:mm string
   };
 
   const formattedReminder = getFormattedReminderTime(task.reminderTime);
+
+  // Check if task is overdue (past dueDate)
+  const isTaskDue = task.dueDate ? new Date(task.dueDate) <= new Date() : true;
 
   return (
     <div style={{ ...cardStyle, borderLeft: `5px solid ${getPriorityColor(task.priority)}` }}>
       <div style={headerStyle}>
         <h4 style={{ margin: 0 }}>{task.title || 'Untitled Task'}</h4>
-
         {formattedReminder && (
-          <span style={reminderStyle}>
-            🕒 {formattedReminder}
-          </span>
+          <span style={reminderStyle}>🕒 {formattedReminder}</span>
         )}
       </div>
 
@@ -48,8 +48,12 @@ function TaskCard({ task, onEdit, onDelete, onToggleComplete }) {
       <div style={buttonGroup}>
         <button onClick={() => onEdit(task)} style={buttonStyle}>Edit</button>
         <button onClick={() => onDelete(task._id)} style={buttonStyle}>Delete</button>
-        <button onClick={() => onToggleComplete(task)} style={buttonStyle}>
-          {task.completed ? 'Mark Pending' : 'Mark Completed'}
+        <button
+          onClick={() => onToggleComplete(task)}
+          style={buttonStyle}
+          disabled={!isTaskDue || task.completed} // cannot mark if not due or already completed
+        >
+          {task.completed ? 'Completed' : 'Mark Completed'}
         </button>
       </div>
     </div>

@@ -6,7 +6,7 @@ function EditTaskModal({ task, onClose, onUpdate }) {
   const [description, setDescription] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [priority, setPriority] = useState('Medium');
-  const [reminderTime, setReminderTime] = useState(''); // Optional
+  const [reminderTime, setReminderTime] = useState(''); // Optional HH:mm
 
   const API_URL = import.meta.env.VITE_TASK_API_URL;
   const token = localStorage.getItem('token');
@@ -27,7 +27,7 @@ function EditTaskModal({ task, onClose, onUpdate }) {
 
     try {
       const payload = { title, description, dueDate, priority };
-      if (reminderTime) payload.reminderTime = reminderTime; // Only send if set
+      if (reminderTime) payload.reminderTime = reminderTime; // only send if set
 
       const res = await axios.put(`${API_URL}/${task._id}`, payload, {
         headers: { Authorization: `Bearer ${token}` },

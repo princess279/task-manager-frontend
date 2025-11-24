@@ -1,41 +1,37 @@
-// src/components/TaskList.jsx
 import React from 'react';
 import TaskCard from './TaskCard';
-import axios from 'axios';
 
-const TaskList = ({ tasks, onDelete, onEdit, onUpdate }) => {
-  const token = localStorage.getItem('token');
-  const TASK_API_URL = import.meta.env.VITE_TASK_API_URL;
+function TaskList({ tasks, onEdit, onDelete, onToggleComplete, onUpdate }) {
 
-  // Toggle task complete/pending
-  const handleToggleComplete = async (task) => {
-    try {
-      const res = await axios.patch(
-        `${TASK_API_URL}/${task._id}/complete`,
-        {}, // PATCH body is empty
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+  // Wrapper to respect "cannot mark complete before dueDate"
+  const handleToggleComplete = (task) => {
+    const now = new Date();
+    const due = task.dueDate ? new Date(task.dueDate) : null;
 
-      onUpdate(res.data.task);
-    } catch (err) {
-      console.error('Error toggling complete:', err.response?.data || err.message);
-      alert(err.response?.data?.message || 'Failed to toggle task complete');
+    // Only allow marking as completed if dueDate has passed
+    if (due && due > now) {
+      alert("You cannot mark this task as completed before its due date.");
+      return;
     }
+
+    // Call original toggle
+    onToggleComplete(task);
   };
 
   return (
     <div>
+      {tasks.length === 0 && <p>No tasks to show.</p>}
       {tasks.map((task) => (
         <TaskCard
           key={task._id}
           task={task}
-          onDelete={onDelete}
           onEdit={onEdit}
-          onToggleComplete={handleToggleComplete} // must match TaskCard
+          onDelete={onDelete}
+          onToggleComplete={handleToggleComplete} // use wrapper
         />
       ))}
     </div>
   );
-};
+}
 
 export default TaskList;
