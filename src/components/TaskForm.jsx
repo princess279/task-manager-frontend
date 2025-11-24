@@ -2,35 +2,29 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
-function TaskForm({ onTaskAdded }) {
+const TaskForm = ({ onTaskAdded }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [priority, setPriority] = useState('Medium');
-  const [reminderTime, setReminderTime] = useState(''); // optional HH:mm
 
-  const TASK_API_URL = import.meta.env.VITE_TASK_API_URL;
   const token = localStorage.getItem('token');
+  const TASK_API_URL = import.meta.env.VITE_TASK_API_URL;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!title) return;
 
     try {
       const res = await axios.post(
-        `${TASK_API_URL}`,
-        { title, description, dueDate, priority, reminderTime: reminderTime || null },
+        TASK_API_URL,
+        { title, description, dueDate, priority },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
-      onTaskAdded(res.data);
-
-      // Clear form
+      onTaskAdded(res.data.task);
       setTitle('');
       setDescription('');
       setDueDate('');
       setPriority('Medium');
-      setReminderTime('');
     } catch (err) {
       console.error('Error adding task:', err.response?.data || err.message);
       alert(err.response?.data?.message || 'Failed to add task');
@@ -45,46 +39,30 @@ function TaskForm({ onTaskAdded }) {
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         required
-        style={{ padding: '8px', width: '60%', marginRight: '10px' }}
+        style={{ padding: '6px', marginRight: '5px' }}
       />
-      <br />
-      <textarea
-        placeholder="Description (optional)"
+      <input
+        type="text"
+        placeholder="Description"
         value={description}
         onChange={(e) => setDescription(e.target.value)}
-        style={{ padding: '8px', width: '60%', marginTop: '10px' }}
+        style={{ padding: '6px', marginRight: '5px' }}
       />
-      <br />
       <input
         type="date"
         value={dueDate}
         onChange={(e) => setDueDate(e.target.value)}
-        style={{ padding: '8px', marginTop: '10px' }}
         required
+        style={{ padding: '6px', marginRight: '5px' }}
       />
-      <select
-        value={priority}
-        onChange={(e) => setPriority(e.target.value)}
-        style={{ padding: '8px', marginLeft: '10px' }}
-      >
+      <select value={priority} onChange={(e) => setPriority(e.target.value)} style={{ padding: '6px', marginRight: '5px' }}>
         <option value="High">High</option>
         <option value="Medium">Medium</option>
         <option value="Low">Low</option>
       </select>
-      <br />
-      <input
-        type="time"
-        value={reminderTime}
-        onChange={(e) => setReminderTime(e.target.value)}
-        style={{ padding: '8px', marginTop: '10px' }}
-        placeholder="Reminder time (optional)"
-      />
-      <br />
-      <button type="submit" style={{ marginTop: '10px', padding: '8px 16px' }}>
-        Add Task
-      </button>
+      <button type="submit" style={{ padding: '6px 12px', cursor: 'pointer' }}>Add Task</button>
     </form>
   );
-}
+};
 
 export default TaskForm;

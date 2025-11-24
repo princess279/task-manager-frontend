@@ -16,8 +16,8 @@ function Dashboard() {
   const [showArchived, setShowArchived] = useState(false);
 
   const navigate = useNavigate();
-  const AUTH_API_URL = import.meta.env.VITE_API_URL;      // e.g. http://localhost:4000/api/auth
-  const TASK_API_URL = import.meta.env.VITE_TASK_API_URL;  // e.g. http://localhost:4000/api/tasks
+  const AUTH_API_URL = import.meta.env.VITE_API_URL;      // /api/auth
+  const TASK_API_URL = import.meta.env.VITE_TASK_API_URL; // /api/tasks
   const token = localStorage.getItem('token');
 
   useEffect(() => {
@@ -25,11 +25,13 @@ function Dashboard() {
       if (!token) return navigate('/login');
 
       try {
+        // Get logged-in user
         const userRes = await axios.get(`${AUTH_API_URL}/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setUser(userRes.data.user);
 
+        // Get user's tasks
         const tasksRes = await axios.get(`${TASK_API_URL}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -49,13 +51,9 @@ function Dashboard() {
   // Add a new task
   const handleAddTask = (newTask) => setTasks([...tasks, newTask]);
 
-  // Update a task or reset tasks after deleting all
-  const handleUpdateTask = (updatedTaskOrArray) => {
-    if (Array.isArray(updatedTaskOrArray)) {
-      setTasks([]); // used after "Delete All Tasks"
-    } else {
-      setTasks(tasks.map((t) => (t._id === updatedTaskOrArray._id ? updatedTaskOrArray : t)));
-    }
+  // Update single task
+  const handleUpdateTask = (updatedTask) => {
+    setTasks(tasks.map((t) => (t._id === updatedTask._id ? updatedTask : t)));
   };
 
   // Delete a single task
@@ -73,35 +71,24 @@ function Dashboard() {
 
   // Delete all tasks
   const handleDeleteAll = async () => {
+    if (!window.confirm('Are you sure you want to delete ALL tasks?')) return;
+
     try {
       await axios.delete(`${TASK_API_URL}/all`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setTasks([]); // clear UI
-      alert("All tasks deleted successfully");
-    } catch (err) {
-      console.error("Delete all failed:", err.response?.data || err.message);
-      alert(err.response?.data?.message || "Failed to delete all tasks");
-    }
-  };
-
-  // Mark task complete
-  const handleCompleteTask = async (taskId) => {
-    try {
-      const res = await axios.patch(`${TASK_API_URL}/${taskId}/complete`, {}, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      handleUpdateTask(res.data.task);
+      setTasks([]);
+      alert('All tasks deleted');
     } catch (err) {
-      console.error('Error marking complete:', err.response?.data || err.message);
-      alert(err.response?.data?.message || 'Failed to mark task complete');
+      console.error('Delete all failed:', err.response?.data || err.message);
+      alert(err.response?.data?.message || 'Failed to delete all tasks');
     }
   };
 
   // Filter tasks
   const filteredTasks = tasks
-    .filter(task => showArchived ? task.status === 'archived' : task.status !== 'archived')
-    .filter(task => {
+    .filter((task) => (showArchived ? task.status === 'archived' : task.status !== 'archived'))
+    .filter((task) => {
       if (filter === 'All') return true;
       if (filter === 'Completed') return task.completed;
       if (filter === 'Pending') return !task.completed;
@@ -125,13 +112,6 @@ function Dashboard() {
           Logout
         </button>
 
-        <button
-          onClick={handleDeleteAll}
-          style={{ margin: '10px', padding: '6px 12px', background: 'red', color: 'white', cursor: 'pointer' }}
-        >
-          Delete All Tasks
-        </button>
-
         {!showArchived && <TaskForm onTaskAdded={handleAddTask} />}
 
         <div style={{ margin: '10px 0' }}>
@@ -149,14 +129,20 @@ function Dashboard() {
             <input type="checkbox" checked={showArchived} onChange={(e) => setShowArchived(e.target.checked)} />
             Show Archived
           </label>
+
+          <button
+            onClick={handleDeleteAll}
+            style={{ marginLeft: '20px', padding: '5px 10px', cursor: 'pointer', background: 'red', color: 'white' }}
+          >
+            Delete All
+          </button>
         </div>
 
         <TaskList
           tasks={filteredTasks}
-          onUpdate={handleUpdateTask}   // Handles single task updates and delete all
+          onUpdate={handleUpdateTask}
           onDelete={handleDeleteTask}
           onEdit={setEditingTask}
-          onComplete={handleCompleteTask}
         />
 
         {editingTask && (
