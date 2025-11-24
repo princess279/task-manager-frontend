@@ -18,7 +18,7 @@ function TaskCard({ task, onEdit, onDelete, onToggleComplete }) {
 
   const formattedReminder = getFormattedReminderTime(task.reminderTime);
 
-  // Check if task is overdue (past dueDate)
+  // Check if task is due
   const isTaskDue = task.dueDate ? new Date(task.dueDate) <= new Date() : true;
 
   return (
@@ -60,6 +60,7 @@ function TaskCard({ task, onEdit, onDelete, onToggleComplete }) {
   );
 }
 
+// Styles remain unchanged
 const cardStyle = {
   backgroundColor: '#fff',
   padding: '15px',

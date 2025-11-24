@@ -27,7 +27,7 @@ function EditTaskModal({ task, onClose, onUpdate }) {
 
     try {
       const payload = { title, description, dueDate, priority };
-      if (reminderTime) payload.reminderTime = reminderTime; // only send if set
+      if (reminderTime) payload.reminderTime = reminderTime; // Only send if set
 
       const res = await axios.put(`${API_URL}/${task._id}`, payload, {
         headers: { Authorization: `Bearer ${token}` },
