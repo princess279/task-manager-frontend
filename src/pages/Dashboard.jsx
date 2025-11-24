@@ -16,8 +16,8 @@ function Dashboard() {
   const [showArchived, setShowArchived] = useState(false);
 
   const navigate = useNavigate();
-  const AUTH_API_URL = import.meta.env.VITE_API_URL;
-  const TASK_API_URL = import.meta.env.VITE_TASK_API_URL;
+  const AUTH_API_URL = import.meta.env.VITE_API_URL;      // e.g. http://localhost:4000/api/auth
+  const TASK_API_URL = import.meta.env.VITE_TASK_API_URL;  // e.g. http://localhost:4000/api/tasks
   const token = localStorage.getItem('token');
 
   useEffect(() => {
@@ -52,10 +52,8 @@ function Dashboard() {
   // Update a task or reset tasks after deleting all
   const handleUpdateTask = (updatedTaskOrArray) => {
     if (Array.isArray(updatedTaskOrArray)) {
-      // Reset tasks (used for "Delete All Tasks")
-      setTasks([]);
+      setTasks([]); // used after "Delete All Tasks"
     } else {
-      // Single task update
       setTasks(tasks.map((t) => (t._id === updatedTaskOrArray._id ? updatedTaskOrArray : t)));
     }
   };
@@ -73,19 +71,32 @@ function Dashboard() {
     }
   };
 
+  // Delete all tasks
   const handleDeleteAll = async () => {
-  try {
-    await axios.delete(`${TASK_API_URL}/all`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
+    try {
+      await axios.delete(`${TASK_API_URL}/all`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setTasks([]); // clear UI
+      alert("All tasks deleted successfully");
+    } catch (err) {
+      console.error("Delete all failed:", err.response?.data || err.message);
+      alert(err.response?.data?.message || "Failed to delete all tasks");
+    }
+  };
 
-    setTasks([]); // clear UI
-    alert("All tasks deleted");
-  } catch (err) {
-    console.error("Delete all failed:", err.response?.data || err.message);
-    alert(err.response?.data?.message || "Failed to delete all tasks");
-  }
-};
+  // Mark task complete
+  const handleCompleteTask = async (taskId) => {
+    try {
+      const res = await axios.patch(`${TASK_API_URL}/${taskId}/complete`, {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      handleUpdateTask(res.data.task);
+    } catch (err) {
+      console.error('Error marking complete:', err.response?.data || err.message);
+      alert(err.response?.data?.message || 'Failed to mark task complete');
+    }
+  };
 
   // Filter tasks
   const filteredTasks = tasks
@@ -114,6 +125,13 @@ function Dashboard() {
           Logout
         </button>
 
+        <button
+          onClick={handleDeleteAll}
+          style={{ margin: '10px', padding: '6px 12px', background: 'red', color: 'white', cursor: 'pointer' }}
+        >
+          Delete All Tasks
+        </button>
+
         {!showArchived && <TaskForm onTaskAdded={handleAddTask} />}
 
         <div style={{ margin: '10px 0' }}>
@@ -135,9 +153,10 @@ function Dashboard() {
 
         <TaskList
           tasks={filteredTasks}
-          onUpdate={handleUpdateTask}   // Can now handle "delete all"
+          onUpdate={handleUpdateTask}   // Handles single task updates and delete all
           onDelete={handleDeleteTask}
           onEdit={setEditingTask}
+          onComplete={handleCompleteTask}
         />
 
         {editingTask && (
