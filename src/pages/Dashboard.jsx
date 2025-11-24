@@ -73,6 +73,20 @@ function Dashboard() {
     }
   };
 
+  const handleDeleteAll = async () => {
+  try {
+    await axios.delete(`${TASK_API_URL}/all`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    setTasks([]); // clear UI
+    alert("All tasks deleted");
+  } catch (err) {
+    console.error("Delete all failed:", err.response?.data || err.message);
+    alert(err.response?.data?.message || "Failed to delete all tasks");
+  }
+};
+
   // Filter tasks
   const filteredTasks = tasks
     .filter(task => showArchived ? task.status === 'archived' : task.status !== 'archived')
