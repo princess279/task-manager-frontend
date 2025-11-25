@@ -5,11 +5,12 @@ import { useNavigate, Link } from 'react-router-dom';
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
-  const navigate = useNavigate();
 
-  const API_URL = import.meta.env.VITE_API_URL;
+  const navigate = useNavigate();
+  const API_URL = import.meta.env.VITE_API_URL; // Auth URL
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -28,15 +29,59 @@ function Login() {
   };
 
   return (
-    <div style={{ maxWidth: '400px', margin: '50px auto' }}>
+    <div style={{ maxWidth: '400px', margin: '50px auto', textAlign: 'center' }}>
       <h1>Login</h1>
       <form onSubmit={handleLogin}>
-        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" required style={{ width: '100%', padding: '8px', marginBottom: '10px' }} />
-        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" required style={{ width: '100%', padding: '8px', marginBottom: '10px' }} />
-        <button type="submit" style={{ width: '100%', padding: '10px' }} disabled={loading}>{loading ? 'Logging in...' : 'Login'}</button>
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Email"
+          required
+          style={{ width: '100%', padding: '10px', marginBottom: '10px' }}
+        />
+        <div style={{ position: 'relative' }}>
+          <input
+            type={showPassword ? 'text' : 'password'}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Password"
+            required
+            style={{ width: '100%', padding: '10px', marginBottom: '10px' }}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            style={{
+              position: 'absolute',
+              right: '10px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              border: 'none',
+              background: 'none',
+              cursor: 'pointer',
+              color: '#555',
+              fontSize: '14px',
+            }}
+          >
+            {showPassword ? 'Hide' : 'Show'}
+          </button>
+        </div>
+
+        <button
+          type="submit"
+          style={{ width: '100%', padding: '10px', marginTop: '10px' }}
+          disabled={loading}
+        >
+          {loading ? 'Logging in...' : 'Login'}
+        </button>
       </form>
+
       {errorMsg && <p style={{ color: 'red', marginTop: '10px' }}>{errorMsg}</p>}
-      <p style={{ marginTop: '10px' }}>Don't have an account? <Link to="/signup">Sign Up</Link></p>
+
+      <p style={{ marginTop: '10px' }}>
+        Don't have an account? <Link to="/signup">Sign Up</Link>
+      </p>
     </div>
   );
 }

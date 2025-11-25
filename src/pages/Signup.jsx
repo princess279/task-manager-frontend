@@ -6,10 +6,11 @@ function Signup() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  // Use the correct auth API
-  const API_URL = import.meta.env.VITE_API_AUTH_URL;
+  const navigate = useNavigate();
+  const API_URL = import.meta.env.VITE_API_URL; // Auth URL
 
   const handleSignup = async (e) => {
     e.preventDefault();
@@ -19,18 +20,16 @@ function Signup() {
       return;
     }
 
+    setLoading(true);
     try {
-      const response = await axios.post(`${API_URL}/register`, {
-        name,
-        email,
-        password,
-      });
-
+      await axios.post(`${API_URL}/register`, { name, email, password });
       alert('Signup successful! Please login.');
-      navigate('/'); // redirect to login page
+      navigate('/login');
     } catch (err) {
       console.error('Signup error:', err);
       alert(err.response?.data?.message || 'Signup failed');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -54,23 +53,45 @@ function Signup() {
           required
           style={{ width: '100%', padding: '10px', margin: '8px 0' }}
         />
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Password"
-          required
-          style={{ width: '100%', padding: '10px', margin: '8px 0' }}
-        />
+        <div style={{ position: 'relative' }}>
+          <input
+            type={showPassword ? 'text' : 'password'}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Password"
+            required
+            style={{ width: '100%', padding: '10px', marginBottom: '10px' }}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            style={{
+              position: 'absolute',
+              right: '10px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              border: 'none',
+              background: 'none',
+              cursor: 'pointer',
+              color: '#555',
+              fontSize: '14px',
+            }}
+          >
+            {showPassword ? 'Hide' : 'Show'}
+          </button>
+        </div>
+
         <button
           type="submit"
           style={{ width: '100%', padding: '10px', marginTop: '10px' }}
+          disabled={loading}
         >
-          Sign Up
+          {loading ? 'Signing up...' : 'Sign Up'}
         </button>
       </form>
+
       <p style={{ marginTop: '10px' }}>
-        Already have an account? <Link to="/">Login</Link>
+        Already have an account? <Link to="/login">Login</Link>
       </p>
     </div>
   );
