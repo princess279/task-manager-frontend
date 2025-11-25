@@ -28,6 +28,9 @@ function TaskCard({ task, onEdit, onDelete, onToggleComplete }) {
         {formattedReminder && (
           <span style={reminderStyle}>🕒 {formattedReminder}</span>
         )}
+        {task.dailyReminder && (
+          <span style={dailyReminderStyle}>🔔 Daily</span>
+        )}
       </div>
 
       {task.description && <p style={descStyle}>{task.description}</p>}
@@ -60,7 +63,7 @@ function TaskCard({ task, onEdit, onDelete, onToggleComplete }) {
   );
 }
 
-// Styles remain unchanged
+// Styles remain mostly unchanged
 const cardStyle = {
   backgroundColor: '#fff',
   padding: '15px',
@@ -75,11 +78,18 @@ const headerStyle = {
   justifyContent: 'space-between',
   alignItems: 'center',
   marginBottom: '8px',
+  gap: '10px',
 };
 
 const reminderStyle = {
   fontSize: '14px',
   color: '#555',
+};
+
+const dailyReminderStyle = {
+  fontSize: '14px',
+  color: '#3b82f6',
+  fontWeight: 'bold',
 };
 
 const descStyle = {

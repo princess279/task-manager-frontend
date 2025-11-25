@@ -6,7 +6,8 @@ function TaskForm({ onTaskAdded }) {
   const [description, setDescription] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [priority, setPriority] = useState('Medium');
-  const [reminderTime, setReminderTime] = useState(''); // Optional
+  const [dailyReminder, setDailyReminder] = useState(false); // New: daily reminder opt-in
+  const [reminderTime, setReminderTime] = useState(''); // Optional time
   const token = localStorage.getItem('token');
   const TASK_API_URL = import.meta.env.VITE_TASK_API_URL;
 
@@ -16,7 +17,11 @@ function TaskForm({ onTaskAdded }) {
 
     try {
       const payload = { title, description, dueDate, priority };
-      if (reminderTime) payload.reminderTime = reminderTime; // Optional
+
+      if (dailyReminder) {
+        payload.dailyReminder = true;
+        if (reminderTime) payload.reminderTime = reminderTime;
+      }
 
       const res = await axios.post(`${TASK_API_URL}`, payload, {
         headers: { Authorization: `Bearer ${token}` },
@@ -29,6 +34,7 @@ function TaskForm({ onTaskAdded }) {
       setDescription('');
       setDueDate('');
       setPriority('Medium');
+      setDailyReminder(false);
       setReminderTime('');
     } catch (err) {
       console.error('Failed to add task:', err.response?.data || err.message);
@@ -63,12 +69,28 @@ function TaskForm({ onTaskAdded }) {
         <option value="Medium">Medium</option>
         <option value="Low">Low</option>
       </select>
-      <input
-        type="time"
-        value={reminderTime}
-        onChange={(e) => setReminderTime(e.target.value)}
-        style={inputStyle}
-      />
+
+      {/* Daily Reminder */}
+      <label style={{ display: 'flex', alignItems: 'center', margin: '5px 0' }}>
+        <input
+          type="checkbox"
+          checked={dailyReminder}
+          onChange={(e) => setDailyReminder(e.target.checked)}
+          style={{ marginRight: '8px' }}
+        />
+        Enable Daily Reminder
+      </label>
+
+      {/* Only show reminder time if dailyReminder is checked */}
+      {dailyReminder && (
+        <input
+          type="time"
+          value={reminderTime}
+          onChange={(e) => setReminderTime(e.target.value)}
+          style={inputStyle}
+        />
+      )}
+
       <button type="submit" style={buttonStyle}>Add Task</button>
     </form>
   );
