@@ -6,7 +6,8 @@ function EditTaskModal({ task, onClose, onUpdate }) {
   const [description, setDescription] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [priority, setPriority] = useState('Medium');
-  const [reminderTime, setReminderTime] = useState(''); // Optional HH:mm
+  const [dailyReminder, setDailyReminder] = useState(false); // optional toggle
+  const [reminderTime, setReminderTime] = useState(''); // optional single reminder
 
   const API_URL = import.meta.env.VITE_TASK_API_URL;
   const token = localStorage.getItem('token');
@@ -17,6 +18,7 @@ function EditTaskModal({ task, onClose, onUpdate }) {
       setDescription(task.description || '');
       setDueDate(task.dueDate ? task.dueDate.split('T')[0] : '');
       setPriority(task.priority || 'Medium');
+      setDailyReminder(task.dailyReminder || false);
       setReminderTime(task.reminderTime || '');
     }
   }, [task]);
@@ -27,7 +29,14 @@ function EditTaskModal({ task, onClose, onUpdate }) {
 
     try {
       const payload = { title, description, dueDate, priority };
-      if (reminderTime) payload.reminderTime = reminderTime; // Only send if set
+
+      if (dailyReminder) {
+        payload.dailyReminder = true;
+        payload.reminderTime = null; // ignore single time if daily is active
+      } else if (reminderTime) {
+        payload.reminderTime = reminderTime; // only use if dailyReminder is false
+        payload.dailyReminder = false;
+      }
 
       const res = await axios.put(`${API_URL}/${task._id}`, payload, {
         headers: { Authorization: `Bearer ${token}` },
@@ -71,12 +80,28 @@ function EditTaskModal({ task, onClose, onUpdate }) {
             <option value="Medium">Medium</option>
             <option value="Low">Low</option>
           </select>
-          <input
-            type="time"
-            value={reminderTime}
-            onChange={(e) => setReminderTime(e.target.value)}
-            style={inputStyle}
-          />
+
+          {/* Daily reminder toggle */}
+          <div style={{ display: 'flex', alignItems: 'center', margin: '8px 0' }}>
+            <input
+              type="checkbox"
+              checked={dailyReminder}
+              onChange={(e) => setDailyReminder(e.target.checked)}
+              id="dailyReminder"
+            />
+            <label htmlFor="dailyReminder" style={{ marginLeft: '5px' }}>Enable Daily Reminder</label>
+          </div>
+
+          {/* Optional single reminder time, only editable if dailyReminder is false */}
+          {!dailyReminder && (
+            <input
+              type="time"
+              value={reminderTime}
+              onChange={(e) => setReminderTime(e.target.value)}
+              style={inputStyle}
+            />
+          )}
+
           <div style={{ marginTop: '10px' }}>
             <button type="submit" style={buttonStyle}>Save</button>
             <button type="button" onClick={onClose} style={buttonStyle}>Cancel</button>
