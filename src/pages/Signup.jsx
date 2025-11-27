@@ -6,23 +6,27 @@ function Signup() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [timezone, setTimezone] = useState('UTC');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
-  const API_URL = import.meta.env.VITE_API_URL; // Auth URL
+  const API_URL = import.meta.env.VITE_API_URL;
+
+  // Dynamically generate all IANA timezones
+  const timezones = Intl.supportedValuesOf('timeZone');
 
   const handleSignup = async (e) => {
     e.preventDefault();
 
-    if (!name || !email || !password) {
+    if (!name || !email || !password || !timezone) {
       alert('All fields are required');
       return;
     }
 
     setLoading(true);
     try {
-      await axios.post(`${API_URL}/register`, { name, email, password });
+      await axios.post(`${API_URL}/register`, { name, email, password, timezone });
       alert('Signup successful! Please login.');
       navigate('/login');
     } catch (err) {
@@ -80,6 +84,19 @@ function Signup() {
             {showPassword ? 'Hide' : 'Show'}
           </button>
         </div>
+
+        {/* Timezone dropdown */}
+        <select
+          value={timezone}
+          onChange={(e) => setTimezone(e.target.value)}
+          style={{ width: '100%', padding: '10px', marginBottom: '10px' }}
+        >
+          {timezones.map((tz) => (
+            <option key={tz} value={tz}>
+              {tz}
+            </option>
+          ))}
+        </select>
 
         <button
           type="submit"
