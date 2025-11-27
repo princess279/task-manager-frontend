@@ -1,24 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 
-function TaskForm({ onTaskAdded, user }) {
+function TaskForm({ onTaskAdded }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [priority, setPriority] = useState('Medium');
-  const [dailyReminder, setDailyReminder] = useState(false); // user's daily reminder preference
-  const [reminderTime, setReminderTime] = useState('');       // user's reminder time
-
+  const [dailyReminder, setDailyReminder] = useState(false);
+  const [reminderTime, setReminderTime] = useState('');
   const token = localStorage.getItem('token');
   const TASK_API_URL = import.meta.env.VITE_TASK_API_URL;
-
-  // Initialize form state based on logged-in user's preferences
-  useEffect(() => {
-    if (user?.dailyReminder) {
-      setDailyReminder(true);
-      if (user.reminderTime) setReminderTime(user.reminderTime);
-    }
-  }, [user]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -27,13 +18,9 @@ function TaskForm({ onTaskAdded, user }) {
     try {
       const payload = { title, description, dueDate, priority };
 
-      if (dailyReminder) {
-        payload.dailyReminder = true;
-        payload.reminderTime = reminderTime || null; // optional time if they ticked daily
-      } else if (reminderTime) {
-        payload.reminderTime = reminderTime; // one-time reminder
-        payload.dailyReminder = false;
-      }
+      // Always send dailyReminder and reminderTime independently
+      payload.dailyReminder = dailyReminder;
+      payload.reminderTime = reminderTime || null;
 
       const res = await axios.post(`${TASK_API_URL}`, payload, {
         headers: { Authorization: `Bearer ${token}` },
@@ -46,8 +33,8 @@ function TaskForm({ onTaskAdded, user }) {
       setDescription('');
       setDueDate('');
       setPriority('Medium');
-      setDailyReminder(user?.dailyReminder || false);
-      setReminderTime(user?.reminderTime || '');
+      setDailyReminder(false);
+      setReminderTime('');
     } catch (err) {
       console.error('Failed to add task:', err.response?.data || err.message);
       alert('Failed to add task');
@@ -93,15 +80,16 @@ function TaskForm({ onTaskAdded, user }) {
         Enable Daily Reminder
       </label>
 
-      {/* Only show reminder time if dailyReminder is ticked */}
-      {dailyReminder && (
+      {/* Reminder time input is always visible now */}
+      <label style={{ display: 'flex', alignItems: 'center', margin: '5px 0' }}>
+        Set Reminder Time:
         <input
           type="time"
           value={reminderTime}
           onChange={(e) => setReminderTime(e.target.value)}
-          style={inputStyle}
+          style={{ marginLeft: '8px' }}
         />
-      )}
+      </label>
 
       <button type="submit" style={buttonStyle}>Add Task</button>
     </form>
