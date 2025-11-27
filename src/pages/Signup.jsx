@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
+import Select from 'react-select';
+import { AiFillEye, AiFillEyeInvisible } from 'react-icons/ai';
 
 function Signup() {
   const [name, setName] = useState('');
@@ -13,8 +15,11 @@ function Signup() {
   const navigate = useNavigate();
   const API_URL = import.meta.env.VITE_API_URL;
 
-  // Dynamically generate all IANA timezones
-  const timezones = Intl.supportedValuesOf('timeZone');
+  // Prepare timezone options for react-select
+  const timezoneOptions = Intl.supportedValuesOf('timeZone').map((tz) => ({
+    value: tz,
+    label: tz,
+  }));
 
   const handleSignup = async (e) => {
     e.preventDefault();
@@ -66,37 +71,32 @@ function Signup() {
             required
             style={{ width: '100%', padding: '10px', marginBottom: '10px' }}
           />
-          <button
-            type="button"
+          <span
             onClick={() => setShowPassword(!showPassword)}
             style={{
               position: 'absolute',
               right: '10px',
               top: '50%',
               transform: 'translateY(-50%)',
-              border: 'none',
-              background: 'none',
               cursor: 'pointer',
+              fontSize: '20px',
               color: '#555',
-              fontSize: '14px',
             }}
           >
-            {showPassword ? 'Hide' : 'Show'}
-          </button>
+            {showPassword ? <AiFillEyeInvisible /> : <AiFillEye />}
+          </span>
         </div>
 
-        {/* Timezone dropdown */}
-        <select
-          value={timezone}
-          onChange={(e) => setTimezone(e.target.value)}
-          style={{ width: '100%', padding: '10px', marginBottom: '10px' }}
-        >
-          {timezones.map((tz) => (
-            <option key={tz} value={tz}>
-              {tz}
-            </option>
-          ))}
-        </select>
+        {/* Searchable timezone dropdown */}
+        <div style={{ marginBottom: '10px', textAlign: 'left' }}>
+          <Select
+            options={timezoneOptions}
+            value={timezoneOptions.find((tz) => tz.value === timezone)}
+            onChange={(selected) => setTimezone(selected.value)}
+            placeholder="Select your timezone"
+            isSearchable
+          />
+        </div>
 
         <button
           type="submit"
@@ -115,3 +115,4 @@ function Signup() {
 }
 
 export default Signup;
+``
