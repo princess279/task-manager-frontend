@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
+import { AiFillEye, AiFillEyeInvisible } from 'react-icons/ai';
 
 function Login() {
   const [email, setEmail] = useState('');
@@ -49,23 +50,20 @@ function Login() {
             required
             style={{ width: '100%', padding: '10px', marginBottom: '10px' }}
           />
-          <button
-            type="button"
+          <span
             onClick={() => setShowPassword(!showPassword)}
             style={{
               position: 'absolute',
               right: '10px',
               top: '50%',
               transform: 'translateY(-50%)',
-              border: 'none',
-              background: 'none',
               cursor: 'pointer',
+              fontSize: '20px',
               color: '#555',
-              fontSize: '14px',
             }}
           >
-            {showPassword ? 'Hide' : 'Show'}
-          </button>
+            {showPassword ? <AiFillEyeInvisible /> : <AiFillEye />}
+          </span>
         </div>
 
         <button
