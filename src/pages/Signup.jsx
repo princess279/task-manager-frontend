@@ -87,7 +87,7 @@ function Signup() {
           </span>
         </div>
 
-        {/* Searchable timezone dropdown */}
+        {/* Searchable timezone dropdown with full width */}
         <div style={{ marginBottom: '10px', textAlign: 'left' }}>
           <Select
             options={timezoneOptions}
@@ -95,6 +95,11 @@ function Signup() {
             onChange={(selected) => setTimezone(selected.value)}
             placeholder="Select your timezone"
             isSearchable
+            styles={{
+              container: (provided) => ({ ...provided, width: '100%' }),
+              control: (provided) => ({ ...provided, width: '100%' }),
+              menu: (provided) => ({ ...provided, width: '100%' }),
+            }}
           />
         </div>
 
@@ -115,4 +120,3 @@ function Signup() {
 }
 
 export default Signup;
-``
